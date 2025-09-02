@@ -72,7 +72,7 @@ describe('TemplateGeneratorService - Unit Tests', () => {
       expect(template).toContain('class Solution:');
       expect(template).toContain('def fibonacci(self, n: int) -> int:');
       expect(template).toContain('if __name__ == "__main__":');
-      expect(template).toContain('pass');
+      expect(template).toContain('return 0');
     });
 
     test('should include typing imports when needed', () => {

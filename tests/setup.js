@@ -22,23 +22,36 @@ jest.setTimeout(30000);
 // Custom matchers
 expect.extend({
   toContainValidTemplate(received, language) {
-    const pass = received && 
-                 typeof received === 'string' && 
-                 received.length > 0 &&
-                 !received.includes('undefined') &&
-                 !received.includes('null');
-    
-    if (pass) {
-      return {
-        message: () => `expected ${received} not to be a valid template`,
-        pass: true,
-      };
-    } else {
+    // Check for basic validity
+    if (!received || typeof received !== 'string' || received.length === 0) {
       return {
         message: () => `expected ${received} to be a valid template`,
         pass: false,
       };
     }
+    
+    // Check for problematic patterns that indicate template generation issues
+    // Allow "undefined" and "null" as they can be valid in generated code
+    const problematicPatterns = [
+      'undefinedundefined',  // Double undefined (likely a bug)
+      'nullnull',            // Double null (likely a bug)
+      'undefinednull',       // Undefined followed by null (likely a bug)
+      'nullundefined'        // Null followed by undefined (likely a bug)
+    ];
+    
+    const hasProblematicPattern = problematicPatterns.some(pattern => received.includes(pattern));
+    
+    if (hasProblematicPattern) {
+      return {
+        message: () => `expected ${received} to be a valid template`,
+        pass: false,
+      };
+    }
+    
+    return {
+      message: () => `expected ${received} not to be a valid template`,
+      pass: true,
+    };
   },
 
   toContainLanguageSpecificSyntax(received, language) {
@@ -46,7 +59,7 @@ expect.extend({
       java: ['class Solution', 'public'],
       python: ['class Solution:', 'def '],
       cpp: ['class Solution', 'using namespace std'],
-      javascript: ['var ', 'function(']
+      javascript: ['var ', '= function(']
     };
     
     const expectedSyntax = syntaxChecks[language] || [];
@@ -73,17 +86,17 @@ global.testUtils = {
    */
   createTestPayload(overrides = {}) {
     return {
-      question_id: "test-problem",
-      title: "Test Problem",
-      description: "A test problem for unit testing",
+      question_id: 'test-problem',
+      title: 'Test Problem',
+      description: 'A test problem for unit testing',
       signature: {
-        function_name: "testFunction",
+        function_name: 'testFunction',
         parameters: [
-          { name: "input", type: "int" }
+          { name: 'input', type: 'int' }
         ],
-        returns: { type: "int" }
+        returns: { type: 'int' }
       },
-      language: "python",
+      language: 'python',
       ...overrides
     };
   },

@@ -23,7 +23,7 @@ class TemplateGeneratorService {
     
     // Determine required imports
     const imports = this.getJavaImports(parameters, returns);
-    const importStatements = imports.length > 0 ? imports.join('\n') + '\n' : '';
+    const importStatements = imports.length > 0 ? `${imports.join('\n')  }\n` : '';
     
     // Check if TreeNode definition is needed
     const needsTreeNode = this.needsTreeNodeDefinition(parameters, returns);
@@ -82,7 +82,7 @@ public class Main {
     
     // Determine required imports
     const imports = this.getPythonImports(parameters, returns);
-    const importStatements = imports.length > 0 ? imports.join('\n') + '\n' : '';
+    const importStatements = imports.length > 0 ? `${imports.join('\n')  }\n` : '';
     
     // Check if TreeNode definition is needed
     const needsTreeNode = this.needsTreeNodeDefinition(parameters, returns);
@@ -95,7 +95,7 @@ public class Main {
     const paramNames = parameters.map(p => p.name).join(', ');
     
     return `${importStatements}${treeNodeDef}class Solution:
-    def ${function_name}(self, ${paramList}) -> ${returnType}:
+    def ${function_name}(self${paramList ? `, ${  paramList}` : ''}) -> ${returnType}:
         # Write your logic here
         ${defaultReturn}
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     
     // Determine required includes
     const includes = this.getCppIncludes(parameters, returns);
-    const includeStatements = includes.join('\n') + '\n';
+    const includeStatements = `${includes.join('\n')  }\n`;
     
     // Check if TreeNode definition is needed
     const needsTreeNode = this.needsTreeNodeDefinition(parameters, returns);
@@ -217,7 +217,12 @@ if (typeof module !== 'undefined' && module.exports) {
    * Main generation method - orchestrates template generation
    */
   static generate(signature, language, questionId) {
-    // Validate types first
+    // Check language support first
+    if (!['java', 'python', 'cpp', 'javascript'].includes(language)) {
+      throw new Error(`Unsupported language: ${language}`);
+    }
+
+    // Validate types after language check
     const typeErrors = validateTypes(signature.parameters, signature.returns, language);
     if (typeErrors.length > 0) {
       const error = new Error(typeErrors.join('; '));
@@ -226,16 +231,16 @@ if (typeof module !== 'undefined' && module.exports) {
     }
 
     switch (language) {
-      case 'java':
-        return this.generateJavaTemplate(signature, questionId);
-      case 'python':
-        return this.generatePythonTemplate(signature, questionId);
-      case 'cpp':
-        return this.generateCppTemplate(signature, questionId);
-      case 'javascript':
-        return this.generateJavaScriptTemplate(signature, questionId);
-      default:
-        throw new Error(`Unsupported language: ${language}`);
+    case 'java':
+      return this.generateJavaTemplate(signature, questionId);
+    case 'python':
+      return this.generatePythonTemplate(signature, questionId);
+    case 'cpp':
+      return this.generateCppTemplate(signature, questionId);
+    case 'javascript':
+      return this.generateJavaScriptTemplate(signature, questionId);
+    default:
+      throw new Error(`Unsupported language: ${language}`);
     }
   }
 
@@ -262,6 +267,11 @@ if (typeof module !== 'undefined' && module.exports) {
     
     // Always add typing imports if we have complex types
     if (allTypes.some(type => type.includes('List') || type.includes('Tree'))) {
+      imports.add('from typing import List, Optional');
+    }
+    
+    // Also add typing imports for simple types to ensure consistency
+    if (allTypes.some(type => type.includes('int') || type.includes('str') || type.includes('bool'))) {
       imports.add('from typing import List, Optional');
     }
     

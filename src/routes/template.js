@@ -1,6 +1,7 @@
 const express = require('express');
 const TemplateController = require('../controllers/templateController');
 const { validateTemplateRequest, validateLanguageParam } = require('../middleware/validation');
+const config = require('../config');
 
 const router = express.Router();
 

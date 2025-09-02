@@ -130,7 +130,7 @@ function mapType(dslType, language) {
  */
 function isTypeSupported(type, language) {
   const typeMapping = getTypeMapping(language);
-  return typeMapping.hasOwnProperty(type);
+  return Object.prototype.hasOwnProperty.call(typeMapping, type);
 }
 
 /**
